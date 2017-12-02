@@ -1,0 +1,23 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model TodoApp.Models.TodoViewModel
+@{
+    Layout = "~/Pages/_Layout.cshtml";
+    ViewData["Title"] = "Add new todo";
+}
+
+<h2>Add new todo</h2>
+<br />
+
+<form asp-controller="Todo" asp-action="Add" method="post">
+    <span asp-validation-for="Text" style="color: #e62727;"></span>
+    <div>Note:</div>
+    <input asp-for="Text" style="width: 75%;" />
+    <div>Due date:</div>
+    <input asp-for="Time" style="width: 75%;" />
+    <div>Labels:</div>
+    <input asp-for="Labels" placeholder="e.g. urgent,school,easy" style="width: 75%;" />
+    <br />
+    <input type="submit" value="Add" />
+</form>
+<br />
+<a asp-controller="Todo" asp-action="Index" style="display: inline-block;">Go back</a>

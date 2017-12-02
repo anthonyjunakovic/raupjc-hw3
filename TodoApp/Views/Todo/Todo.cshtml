@@ -1,0 +1,76 @@
+﻿@using System.Drawing;
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model TodoApp.Models.TodoViewModel
+@{
+    ViewData["Title"] = "Todo";
+}
+
+<div style="overflow: auto; font-weight: bold; font-size: 12pt;">@Model.Text 
+    @if (!Model.Completed)
+    {
+        if (Model.Time.HasValue)
+        {
+            TimeSpan span = Model.Time.Value - DateTime.UtcNow;
+            if (span.TotalSeconds > 0)
+            {
+                if (span.TotalHours >= 72)
+                {
+                    <div style="display: inline-block; width: auto; color: #4cff00; font-size: 8pt;">(@span.Days day(s) remaining)</div>
+                }
+                else if (span.TotalHours > 24)
+                {
+                    <div style="display: inline-block; width: auto; color: #ffd800; font-size: 8pt;">(@span.Days day(s) remaining)</div>
+                }
+                else if (span.TotalMinutes > 60)
+                {
+                    <div style="display: inline-block; width: auto; color: #ee3737; font-size: 8pt;">(@span.Hours hour(s) remaining)</div>
+                }
+                else if (span.TotalSeconds > 60)
+                {
+                    <div style="display: inline-block; width: auto; color: #ee3737; font-size: 8pt;">(@span.Minutes minute(s) remaining)</div>
+                }
+                else
+                {
+                    <div style="display: inline-block; width: auto; color: #ee3737; font-size: 8pt;">(Less than a minute remaining)</div>
+                }
+            }
+            else
+            {
+                <div style="display: inline-block; width: auto; color: #ff0000; font-size: 9pt;">(expired)</div>
+            }
+        }
+    }
+</div>
+<div style="font-size: 11pt;">@Model.Time</div>
+@foreach (string label in Model.Labels.Trim().Split(','))
+{
+    if (label != "")
+    {
+        string hex = TodoApp.Models.TodoViewModel.GetLabelColor(label);
+        Color color = ColorTranslator.FromHtml(hex);
+        if (color.GetBrightness() < 0.7)
+        {
+            <div style="display: inline-block; width: auto; font-size: 9pt; font-weight: bold; padding: 1px 2px; border-radius: 10%; color: #ffffff; background-color: @hex;">@label</div>
+        }
+        else
+        {
+            <div style="display: inline-block; width: auto; font-size: 9pt; font-weight: bold; padding: 1px 2px; border-radius: 10%; color: #000000; background-color: @hex;">@label</div>
+        }
+    }
+}
+@if (Model.Completed)
+{
+    <div style="font-weight: bold; font-size: 10pt;"><a asp-controller="Todo" asp-action="Remove" asp-route-id="@Model.Id">Remove from completed</a></div>
+}
+else
+{
+    TimeSpan? span = Model.Time - DateTime.UtcNow;
+    if ((!span.HasValue) || (span.Value.TotalSeconds > 0)) {
+        <div style="font-weight: bold; font-size: 10pt;"><a asp-controller="Todo" asp-action="Mark" asp-route-id="@Model.Id">Mark as completed</a></div>
+    }
+    else
+    {
+        <div style="font-weight: bold; font-size: 10pt;"><a asp-controller="Todo" asp-action="Remove" asp-route-id="@Model.Id">Remove from list</a></div>
+    }
+}
+

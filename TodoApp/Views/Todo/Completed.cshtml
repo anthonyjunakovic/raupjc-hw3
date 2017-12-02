@@ -1,0 +1,18 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<TodoApp.Models.TodoViewModel>
+@{
+    Layout = "~/Pages/_Layout.cshtml";
+    ViewData["Title"] = "Completed todos";
+}
+
+<h2>Completed todos</h2>
+<br /><br />
+
+@foreach (TodoApp.Models.TodoViewModel model in Model)
+{
+    @Html.Partial("Todo", model)
+    <br />
+}
+
+<br />
+<a asp-controller="Todo" asp-action="Index" style="display: inline-block;">Go back</a>
