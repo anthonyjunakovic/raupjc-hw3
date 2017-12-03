@@ -85,7 +85,7 @@ namespace TodoApp.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _errorLogs.LogWarning(ex, ex.Message, new object[] { _userManager.GetUserId(User) });
+                    _errorLogs.LogWarning(ex, ex.Message, new object[] { });
                     return Unauthorized();
                 }
             }
@@ -106,7 +106,7 @@ namespace TodoApp.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _errorLogs.LogWarning(ex, ex.Message, new object[] { _userManager.GetUserId(User) });
+                    _errorLogs.LogWarning(ex, ex.Message, new object[] { });
                     return Unauthorized();
                 }
             }
