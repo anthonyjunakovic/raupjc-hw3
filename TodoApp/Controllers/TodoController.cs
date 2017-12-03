@@ -9,6 +9,7 @@ using TodoRepository;
 using TodoRepository.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using TodoApp.Data;
+using Microsoft.Extensions.Logging;
 
 namespace TodoApp.Controllers
 {
@@ -18,12 +19,13 @@ namespace TodoApp.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITodoRepository _repository;
+        private readonly ILogger<TodoController> _errorLogs;
 
-        public TodoController(UserManager<ApplicationUser> userManager, ITodoRepository repository)
+        public TodoController(UserManager<ApplicationUser> userManager, ITodoRepository repository, ILogger<TodoController> errorLogs)
         {
             _userManager = userManager;
             _repository = repository;
-
+            _errorLogs = errorLogs;
         }
 
         [Route("")]
@@ -31,9 +33,15 @@ namespace TodoApp.Controllers
         public IActionResult Index()
         {
             Guid userId = new Guid(_userManager.GetUserId(User));
-            List<TodoViewModel> models = new List<TodoViewModel>();
-            List<TodoItem> items = _repository.GetActive(userId);
-            foreach (TodoItem item in items)
+            IndexViewModel models = new IndexViewModel();
+            List<TodoItem> items = _repository.GetActive(userId).OrderByDescending(i => i.DateCreated).ToList();
+            foreach (TodoItem item in items.Where(i => i.DateDue.HasValue))
+            {
+                TodoViewModel model = new TodoViewModel(item.Id, item.Text, item.DateDue, item.IsCompleted);
+                model.Labels = TodoViewModel.GetLabelsRaw(item.Labels);
+                models.Add(model);
+            }
+            foreach (TodoItem item in items.Where(i => !i.DateDue.HasValue))
             {
                 TodoViewModel model = new TodoViewModel(item.Id, item.Text, item.DateDue, item.IsCompleted);
                 model.Labels = TodoViewModel.GetLabelsRaw(item.Labels);
@@ -46,8 +54,8 @@ namespace TodoApp.Controllers
         public IActionResult Completed()
         {
             Guid userId = new Guid(_userManager.GetUserId(User));
-            List<TodoViewModel> models = new List<TodoViewModel>();
-            List<TodoItem> items = _repository.GetCompleted(userId);
+            CompletedViewModel models = new CompletedViewModel();
+            List<TodoItem> items = _repository.GetCompleted(userId).OrderByDescending(i => i.DateCompleted).ToList();
             foreach (TodoItem item in items)
             {
                 TodoViewModel model = new TodoViewModel(item.Id, item.Text, item.DateCompleted, item.IsCompleted);
@@ -77,6 +85,7 @@ namespace TodoApp.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _errorLogs.LogWarning(ex, ex.Message, new object[] { _userManager.GetUserId(User) });
                     return Unauthorized();
                 }
             }
@@ -97,6 +106,7 @@ namespace TodoApp.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _errorLogs.LogWarning(ex, ex.Message, new object[] { _userManager.GetUserId(User) });
                     return Unauthorized();
                 }
             }
@@ -111,7 +121,7 @@ namespace TodoApp.Controllers
 
         [HttpPost]
         [Route("[action]")]
-        public IActionResult Add(TodoViewModel model)
+        public IActionResult Add(AddViewModel model)
         {
             if (ModelState.IsValid)
             {
